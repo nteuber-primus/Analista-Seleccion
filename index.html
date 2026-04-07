@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Revisor de CVs · IA</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+<!-- API Key Modal -->
+<div id="apiModal" class="modal-overlay hidden">
+  <div class="modal">
+    <div class="modal-icon">🔑</div>
+    <h2>Configura tu API Key</h2>
+    <p>El servidor no tiene una API key de Anthropic configurada.<br>
+    Crea el archivo <code>.env</code> en la carpeta del proyecto con:</p>
+    <pre>ANTHROPIC_API_KEY=sk-ant-...</pre>
+    <p>Luego reinicia el servidor con <code>npm start</code>.</p>
+    <button class="btn-primary" onclick="document.getElementById('apiModal').classList.add('hidden')">Cerrar</button>
+  </div>
+</div>
+
+<div id="app">
+
+  <!-- ═══════════════ SIDEBAR ═══════════════ -->
+  <aside id="sidebar">
+
+    <div class="sidebar-header">
+      <div class="logo">
+        <span class="logo-icon">🔍</span>
+        <div>
+          <div class="logo-title">Revisor de CVs</div>
+          <div class="logo-sub">Powered by Claude Opus</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Perfil del Cargo -->
+    <div class="sidebar-section">
+      <div class="section-header">
+        <span class="section-icon">📋</span>
+        <span class="section-label">Perfil del Cargo</span>
+        <span id="profileBadge" class="badge badge-pending">Pendiente</span>
+      </div>
+
+      <div id="profileDropZone" class="drop-zone" role="button" tabindex="0">
+        <input type="file" id="profileFileInput" accept=".pdf,.txt,.md,.docx" hidden />
+        <div id="profileDropContent" class="drop-content">
+          <div class="drop-icon">📁</div>
+          <div class="drop-text">Arrastra un archivo aquí<br><span class="drop-hint">o haz clic para seleccionar</span></div>
+          <div class="drop-formats">PDF · TXT · DOCX</div>
+        </div>
+        <div id="profileLoaded" class="loaded-file hidden">
+          <span class="loaded-icon">✅</span>
+          <span id="profileFileName" class="loaded-name">perfil.pdf</span>
+          <button class="remove-file" id="removeProfile" title="Quitar perfil">✕</button>
+        </div>
+      </div>
+
+      <div class="divider-or">
+        <span>o</span>
+      </div>
+
+      <div id="profileTextArea" class="text-area-wrap">
+        <textarea id="profileText" placeholder="Escribe el perfil del cargo directamente aquí…" rows="5"></textarea>
+        <button id="sendProfileText" class="btn-send-text">
+          Cargar Perfil ↑
+        </button>
+      </div>
+    </div>
+
+    <!-- CVs -->
+    <div class="sidebar-section" id="cvsSection">
+      <div class="section-header">
+        <span class="section-icon">👥</span>
+        <span class="section-label">Candidatos</span>
+        <span id="cvsBadge" class="badge badge-neutral">0 CVs</span>
+      </div>
+
+      <div id="cvsDropZone" class="drop-zone" role="button" tabindex="0">
+        <input type="file" id="cvsFileInput" accept=".pdf,.txt,.md,.docx" multiple hidden />
+        <div class="drop-content">
+          <div class="drop-icon">📄</div>
+          <div class="drop-text">Arrastra CVs aquí<br><span class="drop-hint">Múltiples archivos</span></div>
+          <div class="drop-formats">PDF · TXT · DOCX</div>
+        </div>
+      </div>
+
+      <ul id="cvList" class="cv-list"></ul>
+    </div>
+
+    <!-- Actions -->
+    <div class="sidebar-footer">
+      <button id="btnGenerateReport" class="btn-report" disabled>
+        📊 Generar Informe Final
+      </button>
+      <div class="footer-row">
+        <button id="btnExport" class="btn-sm" disabled title="Exportar informe">
+          💾 Exportar
+        </button>
+        <button id="btnNewSession" class="btn-sm btn-ghost">
+          🔄 Nueva Sesión
+        </button>
+      </div>
+    </div>
+
+  </aside>
+
+  <!-- ═══════════════ MAIN CHAT ═══════════════ -->
+  <main id="main">
+
+    <div class="chat-topbar">
+      <div id="chatStatus" class="status-pill status-waiting">
+        <span class="status-dot"></span>
+        <span id="statusText">Esperando perfil del cargo…</span>
+      </div>
+      <div id="progressInfo" class="progress-info hidden">
+        <span id="progressText"></span>
+      </div>
+    </div>
+
+    <div id="messages" class="messages">
+      <!-- Welcome -->
+      <div class="msg agent-msg">
+        <div class="msg-avatar">🤖</div>
+        <div class="msg-body">
+          <div class="msg-name">Asistente de Selección</div>
+          <div class="msg-text">
+            <p>¡Hola! Estoy listo para comparar candidatos. El flujo es simple:</p>
+            <ol style="padding-left:18px;margin:6px 0;line-height:2">
+              <li>Carga el <strong>perfil del cargo</strong> (panel izquierdo)</li>
+              <li>Sube <strong>todos los CVs</strong> que quieras comparar</li>
+              <li>Presiona <strong>📊 Generar Informe</strong> y recibirás:<br>
+                &nbsp;&nbsp;• Tabla de competencias por candidato<br>
+                &nbsp;&nbsp;• Ranking de mayor a menor preferencia<br>
+                &nbsp;&nbsp;• Análisis de dos párrafos por cada uno de los Top 7 (idoneidad + fortalezas/debilidades)
+              </li>
+            </ol>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="inputArea" class="input-area">
+      <div class="input-row">
+        <button id="btnAttachCV" class="btn-attach" title="Adjuntar CV" disabled>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/>
+          </svg>
+          Adjuntar CV
+        </button>
+        <input type="file" id="attachCVInput" accept=".pdf,.txt,.md,.docx" hidden />
+        <input id="userInput" class="user-input" type="text"
+          placeholder="Escribe una pregunta o comentario…" disabled />
+        <button id="sendBtn" class="btn-send" disabled>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <line x1="22" y1="2" x2="11" y2="13"/>
+            <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
