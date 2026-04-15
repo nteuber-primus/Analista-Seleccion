@@ -13,11 +13,15 @@
   <div class="modal">
     <div class="modal-icon">🔑</div>
     <h2>Configura tu API Key</h2>
-    <p>El servidor no tiene una API key de Anthropic configurada.<br>
-    Crea el archivo <code>.env</code> en la carpeta del proyecto con:</p>
-    <pre>ANTHROPIC_API_KEY=sk-ant-...</pre>
-    <p>Luego reinicia el servidor con <code>npm start</code>.</p>
-    <button class="btn-primary" onclick="document.getElementById('apiModal').classList.add('hidden')">Cerrar</button>
+    <p>Ingresa tu clave de Anthropic para comenzar.<br>
+    Puedes obtenerla en <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a></p>
+    <input
+      id="apiKeyInput"
+      type="password"
+      placeholder="sk-ant-api03-..."
+      style="width:100%;padding:10px 14px;border:1.5px solid #d1dff5;border-radius:8px;font-size:13px;margin:12px 0;outline:none;font-family:monospace"
+    />
+    <button class="btn-primary" id="saveApiKey" style="width:100%">Guardar y continuar</button>
   </div>
 </div>
 

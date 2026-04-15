@@ -153,6 +153,22 @@ async function buildContentBlocks(file, label) {
 }
 
 /* ═══════════════════════════════════════════════
+   API Key (localStorage)
+═══════════════════════════════════════════════ */
+function getStoredApiKey() {
+  return localStorage.getItem('anthropic_api_key') || '';
+}
+function saveApiKey(key) {
+  localStorage.setItem('anthropic_api_key', key.trim());
+}
+function showApiKeyModal() {
+  const input = document.getElementById('apiKeyInput');
+  if (input) input.value = getStoredApiKey();
+  els.apiModal.classList.remove('hidden');
+  if (input) setTimeout(() => input.focus(), 100);
+}
+
+/* ═══════════════════════════════════════════════
    API - Streaming
 ═══════════════════════════════════════════════ */
 async function* streamChat(messages) {
@@ -164,7 +180,7 @@ async function* streamChat(messages) {
     method: 'POST',
     signal: abort.signal,
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ messages }),
+    body: JSON.stringify({ messages, apiKey: getStoredApiKey() }),
   });
   clearTimeout(timeout);
 
@@ -293,9 +309,9 @@ async function sendMessage(userBlocks, userLabel, isReport = false) {
   } catch (err) {
     const isKeyError = err.message.toLowerCase().includes('api') || err.message.toLowerCase().includes('key') || err.message.toLowerCase().includes('auth');
     msgEl.innerHTML = isKeyError
-      ? `<span style="color:#ef4444">🔑 <strong>API Key inválida o no configurada.</strong><br>Abre el archivo <code>.env</code> en la carpeta del proyecto, reemplaza el valor de <code>ANTHROPIC_API_KEY</code> con tu clave real (comienza con <code>sk-ant-</code>) y reinicia el servidor con <code>npm start</code>.</span>`
+      ? `<span style="color:#ef4444">🔑 <strong>API Key inválida o no configurada.</strong> <a href="#" onclick="showApiKeyModal();return false;" style="color:#6366f1">Haz clic aquí para configurarla</a>.</span>`
       : `<span style="color:#ef4444">⚠ Error: ${escapeHtml(err.message)}</span>`;
-    if (isKeyError) els.apiModal.classList.remove('hidden');
+    if (isKeyError) showApiKeyModal();
     // Revertir último mensaje del historial
     state.history.pop();
   } finally {
@@ -903,6 +919,30 @@ function init() {
   els.btnGenerateReport.addEventListener('click', generateReport);
   els.btnExport.addEventListener('click', exportReport);
   els.btnNewSession.addEventListener('click', newSession);
+
+  // Modal API Key
+  const saveBtn = document.getElementById('saveApiKey');
+  const keyInput = document.getElementById('apiKeyInput');
+  if (saveBtn && keyInput) {
+    saveBtn.addEventListener('click', () => {
+      const key = keyInput.value.trim();
+      if (!key.startsWith('sk-ant-') || key.length < 20) {
+        keyInput.style.borderColor = '#ef4444';
+        keyInput.placeholder = 'Debe comenzar con sk-ant-...';
+        return;
+      }
+      saveApiKey(key);
+      els.apiModal.classList.add('hidden');
+      showToast('API Key guardada correctamente', 'ok');
+    });
+    keyInput.addEventListener('keydown', e => {
+      if (e.key === 'Enter') saveBtn.click();
+      keyInput.style.borderColor = '#d1dff5';
+    });
+  }
+
+  // Mostrar modal si no hay key guardada al iniciar
+  if (!getStoredApiKey()) showApiKeyModal();
 }
 
 document.addEventListener('DOMContentLoaded', init);

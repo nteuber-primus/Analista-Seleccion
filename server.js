@@ -137,7 +137,8 @@ app.post('/api/parse-pdf', async (req, res) => {
 });
 
 app.post('/api/chat', async (req, res) => {
-  const apiKey = process.env.ANTHROPIC_API_KEY;
+  // Acepta la key desde el env var del servidor o desde el body del request (modo cliente)
+  const apiKey = process.env.ANTHROPIC_API_KEY || req.body.apiKey || '';
   const keyInvalid = !apiKey || apiKey.startsWith('tu-api') || apiKey === 'sk-ant-...' || apiKey.length < 20;
 
   if (keyInvalid) {
