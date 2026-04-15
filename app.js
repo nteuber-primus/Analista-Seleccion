@@ -7,6 +7,7 @@ const state = {
   cvs: [],              // [{ name, blocks, status }]
   isLoading: false,
   lastReport: '',
+  serverHasKey: false,  // true cuando el servidor tiene ANTHROPIC_API_KEY configurada
 };
 
 /* ═══════════════════════════════════════════════
@@ -318,7 +319,13 @@ async function sendMessage(userBlocks, userLabel, isReport = false) {
     }
 
   } catch (err) {
-    const isKeyError = err.message.toLowerCase().includes('api') || err.message.toLowerCase().includes('key') || err.message.toLowerCase().includes('auth');
+    // Solo considerar error de key si: el servidor NO tiene key configurada
+    // Y el error es específicamente de autenticación (401 / mensajes de Anthropic)
+    const msg = err.message.toLowerCase();
+    const isAuthError = msg.includes('401') || msg.includes('invalid x-api-key') ||
+      msg.includes('authentication') || msg.includes('api key inválida') ||
+      msg.includes('no configurada');
+    const isKeyError = !state.serverHasKey && isAuthError;
     msgEl.innerHTML = isKeyError
       ? `<span style="color:#ef4444">🔑 <strong>API Key inválida o no configurada.</strong> <a href="#" onclick="showApiKeyModal();return false;" style="color:#6366f1">Haz clic aquí para configurarla</a>.</span>`
       : `<span style="color:#ef4444">⚠ Error: ${escapeHtml(err.message)}</span>`;
@@ -957,10 +964,12 @@ async function init() {
   // Si no tiene, mostrar modal solo si el usuario tampoco tiene una guardada localmente.
   try {
     const resp = await fetch('/api/has-server-key');
-    const { hasKey: serverHasKey } = await resp.json();
-    if (!serverHasKey && !getStoredApiKey()) showApiKeyModal();
+    const { hasKey } = await resp.json();
+    state.serverHasKey = !!hasKey;
+    if (!state.serverHasKey && !getStoredApiKey()) showApiKeyModal();
   } catch {
     // Si falla el check (offline, etc.), usar lógica local
+    state.serverHasKey = false;
     if (!getStoredApiKey()) showApiKeyModal();
   }
 }
