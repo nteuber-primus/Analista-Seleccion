@@ -76,17 +76,28 @@ function renderMarkdown(text) {
     .replace(/^[*-] (.+)$/gm, '<li>$1</li>')
     // Listas (ol)
     .replace(/^\d+\. (.+)$/gm, '<li>$1</li>')
-    // Tablas básicas
+    // Tablas: marcamos filas de separación para detectarlas luego
     .replace(/^\|(.+)\|$/gm, row => {
       const cells = row.slice(1, -1).split('|').map(c => c.trim());
-      if (cells.every(c => /^[-: ]+$/.test(c))) return ''; // Separator row
+      if (cells.every(c => /^[-: ]+$/.test(c))) return '<!--sep-->';
       return '<tr>' + cells.map(c => `<td>${c}</td>`).join('') + '</tr>';
     });
 
   // Envolver <li> consecutivos en <ul>
   html = html.replace(/(<li>[\s\S]*?<\/li>\n?)+/g, m => `<ul>${m}</ul>`);
-  // Envolver <tr> en <table>
-  html = html.replace(/(<tr>[\s\S]*?<\/tr>\n?)+/g, m => `<table>${m}</table>`);
+  // Envolver <tr> en <table> — primera fila antes del separador = <thead>
+  html = html.replace(/(<tr>[\s\S]*?<\/tr>\n?<!--sep-->\n?)(<tr>[\s\S]*?<\/tr>\n?)+/g, m => {
+    const sepIdx = m.indexOf('<!--sep-->');
+    const headerRow = m.slice(0, sepIdx).trim()
+      .replace(/<td>/g, '<th>').replace(/<\/td>/g, '</th>');
+    const bodyRows = m.slice(sepIdx + 10).trim();
+    return `<table><thead>${headerRow}</thead><tbody>${bodyRows}</tbody></table>`;
+  });
+  // Tablas sin separador (fallback)
+  html = html.replace(/(<tr>[\s\S]*?<\/tr>\n?)+/g, m => {
+    if (m.includes('<table>')) return m;
+    return `<table>${m}</table>`;
+  });
 
   // Párrafos: líneas separadas por \n\n
   html = html
@@ -415,7 +426,7 @@ async function generateReport() {
     // Instrucción principal
     {
       type: 'text',
-      text: `Aquí están el perfil del cargo y los CVs de los ${n} candidatos. Analízalos a TODOS comparativamente y genera el informe completo con: matriz de competencias (candidatos como filas, competencias como columnas), ranking completo con puntuación X/10 para cada candidato, y análisis detallado de dos párrafos por cada uno de los top 7.`
+      text: `Aquí están el perfil del cargo y los CVs de los ${n} candidatos. Analízalos a TODOS comparativamente y genera el informe completo con: (1) matriz de competencias (candidatos como filas, competencias como columnas), (2) ranking completo con puntuación X/10 para cada candidato, (3) análisis detallado de cada uno de los top 7 con tres secciones: idoneidad para el cargo, fortalezas y debilidades, y 10 preguntas sugeridas para la entrevista personalizadas según el perfil de cada candidato.`
     },
     // Perfil del cargo
     ...state.jobProfile.blocks,
@@ -426,7 +437,7 @@ async function generateReport() {
     // Instrucción de formato final
     {
       type: 'text',
-      text: `Genera ahora el informe completo con: (1) matriz de competencias con candidatos como filas y competencias como columnas, (2) ranking completo de todos los candidatos de mayor a menor preferencia con puntuación X/10, (3) análisis de dos párrafos por cada uno de los top 7 candidatos — el primero sobre su idoneidad para el cargo, el segundo sobre sus fortalezas y debilidades. Usa Markdown.`
+      text: `Genera ahora el informe completo con: (1) matriz de competencias con candidatos como filas y competencias como columnas, (2) ranking completo de todos los candidatos de mayor a menor preferencia con puntuación X/10, (3) análisis de los top 7 candidatos con tres secciones cada uno: idoneidad para el cargo, fortalezas y debilidades, y exactamente 10 preguntas sugeridas para la entrevista personalizadas para ese candidato. Usa Markdown.`
     }
   ];
 

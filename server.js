@@ -47,7 +47,7 @@ Lista completa de todos los candidatos, ordenada de mayor a menor idoneidad:
 
 ## Análisis de los Top 7 Candidatos
 
-Para cada uno de los 7 candidatos mejor posicionados, escribe exactamente dos párrafos:
+Para cada uno de los 7 candidatos mejor posicionados, escribe exactamente tres secciones:
 
 **[Nombre del candidato #1]**
 
@@ -55,11 +55,27 @@ Para cada uno de los 7 candidatos mejor posicionados, escribe exactamente dos p�
 
 *Fortalezas y debilidades:* [Párrafo 2: Análisis equilibrado de sus principales fortalezas para este rol específico y las brechas o debilidades que podría presentar, basándose estrictamente en lo que figura en el CV.]
 
+*Preguntas sugeridas para la entrevista:*
+1. [Pregunta 1 específica para este candidato, orientada a profundizar en su experiencia más relevante]
+2. [Pregunta 2]
+3. [Pregunta 3]
+4. [Pregunta 4]
+5. [Pregunta 5]
+6. [Pregunta 6]
+7. [Pregunta 7]
+8. [Pregunta 8]
+9. [Pregunta 9]
+10. [Pregunta 10]
+
 **[Nombre del candidato #2]**
 
 *Idoneidad para el cargo:* [Párrafo 1]
 
 *Fortalezas y debilidades:* [Párrafo 2]
+
+*Preguntas sugeridas para la entrevista:*
+1. [Pregunta personalizada según el perfil de este candidato]
+2–10. [Resto de preguntas]
 
 **[Nombre del candidato #3]**
 
@@ -67,11 +83,17 @@ Para cada uno de los 7 candidatos mejor posicionados, escribe exactamente dos p�
 
 *Fortalezas y debilidades:* [Párrafo 2]
 
+*Preguntas sugeridas para la entrevista:*
+1–10. [10 preguntas personalizadas]
+
 **[Nombre del candidato #4]**
 
 *Idoneidad para el cargo:* [Párrafo 1]
 
 *Fortalezas y debilidades:* [Párrafo 2]
+
+*Preguntas sugeridas para la entrevista:*
+1–10. [10 preguntas personalizadas]
 
 **[Nombre del candidato #5]**
 
@@ -79,17 +101,26 @@ Para cada uno de los 7 candidatos mejor posicionados, escribe exactamente dos p�
 
 *Fortalezas y debilidades:* [Párrafo 2]
 
+*Preguntas sugeridas para la entrevista:*
+1–10. [10 preguntas personalizadas]
+
 **[Nombre del candidato #6]**
 
 *Idoneidad para el cargo:* [Párrafo 1]
 
 *Fortalezas y debilidades:* [Párrafo 2]
 
+*Preguntas sugeridas para la entrevista:*
+1–10. [10 preguntas personalizadas]
+
 **[Nombre del candidato #7]**
 
 *Idoneidad para el cargo:* [Párrafo 1]
 
 *Fortalezas y debilidades:* [Párrafo 2]
+
+*Preguntas sugeridas para la entrevista:*
+1–10. [10 preguntas personalizadas]
 
 ---
 
@@ -99,7 +130,8 @@ Reglas:
 - En la matriz, usa únicamente ✅ ⚠️ ❌ como valores de celda
 - El ranking debe incluir a TODOS los candidatos evaluados, sin excepción
 - Si hay menos de 7 candidatos, analiza en detalle a todos los disponibles
-- Los párrafos de análisis deben ser específicos: nombra tecnologías, años, cargos anteriores y logros concretos`;
+- Los párrafos de análisis deben ser específicos: nombra tecnologías, años, cargos anteriores y logros concretos
+- Las 10 preguntas de entrevista deben ser personalizadas para cada candidato: algunas explorando sus fortalezas, otras indagando en sus brechas o debilidades detectadas, y otras situacionales/conductuales relevantes al cargo`;
 
 app.get('/api/debug', (req, res) => {
   const key = process.env.ANTHROPIC_API_KEY || '';
