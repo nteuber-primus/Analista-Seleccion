@@ -144,6 +144,13 @@ app.get('/api/debug', (req, res) => {
   });
 });
 
+// Endpoint para que el cliente sepa si el servidor ya tiene la API key configurada
+app.get('/api/has-server-key', (req, res) => {
+  const key = process.env.ANTHROPIC_API_KEY || '';
+  const hasKey = !!key && !key.startsWith('tu-api') && key !== 'sk-ant-...' && key.length >= 20;
+  res.json({ hasKey });
+});
+
 app.post('/api/parse-docx', async (req, res) => {
   const { data } = req.body;
   if (!data) return res.status(400).json({ error: 'Campo "data" requerido.' });

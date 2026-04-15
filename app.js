@@ -874,7 +874,7 @@ function setupDropZone(zone, onFile, multiple = false) {
 /* ═══════════════════════════════════════════════
    Event Listeners
 ═══════════════════════════════════════════════ */
-function init() {
+async function init() {
   // Perfil - drop zone
   setupDropZone(els.profileDropZone, file => loadJobProfile(file));
   els.profileFileInput.addEventListener('change', e => {
@@ -952,8 +952,17 @@ function init() {
     });
   }
 
-  // Mostrar modal si no hay key guardada al iniciar
-  if (!getStoredApiKey()) showApiKeyModal();
+  // Verificar si el servidor ya tiene API key configurada.
+  // Si tiene, nunca mostrar el modal (modo compartido / Vercel con env var).
+  // Si no tiene, mostrar modal solo si el usuario tampoco tiene una guardada localmente.
+  try {
+    const resp = await fetch('/api/has-server-key');
+    const { hasKey: serverHasKey } = await resp.json();
+    if (!serverHasKey && !getStoredApiKey()) showApiKeyModal();
+  } catch {
+    // Si falla el check (offline, etc.), usar lógica local
+    if (!getStoredApiKey()) showApiKeyModal();
+  }
 }
 
 document.addEventListener('DOMContentLoaded', init);
