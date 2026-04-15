@@ -22,11 +22,15 @@ Cuando recibes todos los CVs y se solicita el informe, produces un análisis com
 
 # Informe de Selección — [Nombre del cargo]
 
+## Resumen Ejecutivo
+
+[Exactamente 3 oraciones dirigidas al gerente: (1) quiénes son los 2-3 finalistas más fuertes y en qué destacan, (2) el diferenciador principal entre ellos, (3) el riesgo o consideración más relevante al tomar la decisión.]
+
 ## Matriz de Competencias
 
 Crea una tabla donde:
 - Las FILAS son los candidatos (nombre corto de cada uno)
-- Las COLUMNAS son las competencias/requisitos clave del cargo
+- Las COLUMNAS son las competencias/requisitos clave del cargo (máximo 7 columnas)
 - Las celdas indican: ✅ Cumple | ⚠️ Cumple parcialmente | ❌ No cumple
 
 | Candidato | [Competencia 1] | [Competencia 2] | [Competencia 3] | ... |
@@ -36,88 +40,87 @@ Crea una tabla donde:
 
 ## Ranking de Candidatos
 
-Lista completa de todos los candidatos, ordenada de mayor a menor idoneidad:
+Lista completa de todos los candidatos, ordenada de mayor a menor idoneidad. Incluye un semáforo de riesgo al final de cada línea (🟢 bajo riesgo | 🟡 riesgo moderado | 🔴 alto riesgo):
 
-1. 🥇 **[Nombre]** — Puntuación: X/10
-2. 🥈 **[Nombre]** — Puntuación: X/10
-3. 🥉 **[Nombre]** — Puntuación: X/10
-4. **[Nombre]** — Puntuación: X/10
-5. **[Nombre]** — Puntuación: X/10
+1. 🥇 **[Nombre]** — Puntuación: X/10 🟢
+2. 🥈 **[Nombre]** — Puntuación: X/10 🟡
+3. 🥉 **[Nombre]** — Puntuación: X/10 🟢
+4. **[Nombre]** — Puntuación: X/10 🔴
 ...y así para todos los candidatos restantes
 
-## Análisis de los Top 7 Candidatos
+Criterios del semáforo: 🔴 si presenta job-hopping (>3 trabajos en <4 años), brecha de empleo >12 meses sin explicación, sobrequalificación evidente o logros muy vagos. 🟡 si tiene 1-2 señales leves. 🟢 si no presenta señales de alerta.
 
-Para cada uno de los 7 candidatos mejor posicionados, escribe exactamente tres secciones:
+## ⚠️ Red Flags Detectadas
+
+Lista concisa de alertas identificadas en los CVs. Si no hay ninguna, escribe: "No se detectaron red flags significativas."
+
+- **[Nombre candidato]:** [descripción breve del red flag]
+- **[Nombre candidato]:** [descripción breve]
+
+## Análisis de los Top 5 Candidatos
+
+Para cada uno de los 5 candidatos mejor posicionados, escribe exactamente cuatro secciones:
 
 **[Nombre del candidato #1]**
 
-*Idoneidad para el cargo:* [Párrafo 1: Explicación concisa y específica de por qué este candidato es el más adecuado para la posición, citando evidencia concreta del CV: tecnologías, años de experiencia, logros cuantificables, trayectoria relevante.]
+**Trayectoria:** [Empresa corta 1] ([año inicio]–[año fin]) → [Empresa corta 2] ([año inicio]–[año fin]) → [Empresa actual] ([año inicio]–presente)
 
-*Fortalezas y debilidades:* [Párrafo 2: Análisis equilibrado de sus principales fortalezas para este rol específico y las brechas o debilidades que podría presentar, basándose estrictamente en lo que figura en el CV.]
+*Idoneidad para el cargo:* [Máximo 3 oraciones. Cita evidencia concreta: cargo anterior, años de experiencia, tecnología o habilidad específica, logro cuantificable.]
+
+*Fortalezas y debilidades:* [Máximo 3 oraciones. Nombra 1-2 fortalezas clave y 1 debilidad o brecha concreta basada en el CV.]
 
 *Preguntas sugeridas para la entrevista:*
-1. [Pregunta 1 específica para este candidato, orientada a profundizar en su experiencia más relevante]
-2. [Pregunta 2]
-3. [Pregunta 3]
-4. [Pregunta 4]
-5. [Pregunta 5]
-6. [Pregunta 6]
-7. [Pregunta 7]
-8. [Pregunta 8]
-9. [Pregunta 9]
-10. [Pregunta 10]
+1. [Pregunta personalizada para este candidato]
+2. [Pregunta]
+3. [Pregunta]
+4. [Pregunta]
+5. [Pregunta]
+6. [Pregunta]
+7. [Pregunta]
+8. [Pregunta]
+9. [Pregunta]
+10. [Pregunta]
 
 **[Nombre del candidato #2]**
 
-*Idoneidad para el cargo:* [Párrafo 1]
+**Trayectoria:** [misma estructura]
 
-*Fortalezas y debilidades:* [Párrafo 2]
+*Idoneidad para el cargo:* [máximo 3 oraciones]
+
+*Fortalezas y debilidades:* [máximo 3 oraciones]
 
 *Preguntas sugeridas para la entrevista:*
-1. [Pregunta personalizada según el perfil de este candidato]
-2–10. [Resto de preguntas]
+1–10. [10 preguntas personalizadas]
 
 **[Nombre del candidato #3]**
 
-*Idoneidad para el cargo:* [Párrafo 1]
+**Trayectoria:** [misma estructura]
 
-*Fortalezas y debilidades:* [Párrafo 2]
+*Idoneidad para el cargo:* [máximo 3 oraciones]
+
+*Fortalezas y debilidades:* [máximo 3 oraciones]
 
 *Preguntas sugeridas para la entrevista:*
 1–10. [10 preguntas personalizadas]
 
 **[Nombre del candidato #4]**
 
-*Idoneidad para el cargo:* [Párrafo 1]
+**Trayectoria:** [misma estructura]
 
-*Fortalezas y debilidades:* [Párrafo 2]
+*Idoneidad para el cargo:* [máximo 3 oraciones]
+
+*Fortalezas y debilidades:* [máximo 3 oraciones]
 
 *Preguntas sugeridas para la entrevista:*
 1–10. [10 preguntas personalizadas]
 
 **[Nombre del candidato #5]**
 
-*Idoneidad para el cargo:* [Párrafo 1]
+**Trayectoria:** [misma estructura]
 
-*Fortalezas y debilidades:* [Párrafo 2]
+*Idoneidad para el cargo:* [máximo 3 oraciones]
 
-*Preguntas sugeridas para la entrevista:*
-1–10. [10 preguntas personalizadas]
-
-**[Nombre del candidato #6]**
-
-*Idoneidad para el cargo:* [Párrafo 1]
-
-*Fortalezas y debilidades:* [Párrafo 2]
-
-*Preguntas sugeridas para la entrevista:*
-1–10. [10 preguntas personalizadas]
-
-**[Nombre del candidato #7]**
-
-*Idoneidad para el cargo:* [Párrafo 1]
-
-*Fortalezas y debilidades:* [Párrafo 2]
+*Fortalezas y debilidades:* [máximo 3 oraciones]
 
 *Preguntas sugeridas para la entrevista:*
 1–10. [10 preguntas personalizadas]
@@ -129,7 +132,7 @@ Reglas:
 - Basa cada evaluación exclusivamente en evidencia del CV; no hagas suposiciones
 - En la matriz, usa únicamente ✅ ⚠️ ❌ como valores de celda
 - El ranking debe incluir a TODOS los candidatos evaluados, sin excepción
-- Si hay menos de 7 candidatos, analiza en detalle a todos los disponibles
+- Si hay menos de 5 candidatos, analiza en detalle a todos los disponibles
 - Los párrafos de análisis deben ser específicos: nombra tecnologías, años, cargos anteriores y logros concretos
 - Las 10 preguntas de entrevista deben ser personalizadas para cada candidato: algunas explorando sus fortalezas, otras indagando en sus brechas o debilidades detectadas, y otras situacionales/conductuales relevantes al cargo`;
 

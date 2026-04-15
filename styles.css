@@ -379,6 +379,27 @@ html, body {
 .modal p    { color: var(--text-muted); font-size: 13px; line-height: 1.6; }
 .modal pre  { background: #f1f5f9; padding: 10px 14px; border-radius: 8px; font-size: 12px; text-align: left; }
 .modal code { font-family: monospace; font-size: 12px; }
+
+/* ── Historial items ── */
+.hist-item {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 14px; border-radius: 8px; border: 1px solid var(--border);
+  margin-bottom: 8px; background: var(--bg);
+}
+.hist-cargo { font-weight: 600; font-size: 13px; color: var(--text); }
+.hist-meta  { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+.hist-actions { display: flex; gap: 6px; flex-shrink: 0; margin-left: 12px; }
+.btn-hist-load {
+  background: var(--accent); color: #fff; border: none; border-radius: 6px;
+  padding: 5px 12px; font-size: 12px; font-weight: 600; cursor: pointer;
+}
+.btn-hist-load:hover { background: var(--accent-hover); }
+.btn-hist-del {
+  background: none; border: 1px solid var(--border); border-radius: 6px;
+  padding: 5px 8px; font-size: 12px; cursor: pointer; color: var(--text-muted);
+}
+.btn-hist-del:hover { background: #fee2e2; border-color: #fca5a5; color: #ef4444; }
+
 .btn-primary {
   background: var(--accent); color: #fff; border: none;
   border-radius: 8px; padding: 10px 24px; font-size: 14px; font-weight: 600;

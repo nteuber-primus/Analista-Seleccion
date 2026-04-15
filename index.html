@@ -8,6 +8,17 @@
 </head>
 <body>
 
+<!-- Historial Modal -->
+<div id="historialModal" class="modal-overlay hidden">
+  <div class="modal" style="max-width:520px;width:94vw">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <h2 style="margin:0;font-size:16px">📚 Historial de Informes</h2>
+      <button id="closeHistorial" style="background:none;border:none;font-size:18px;cursor:pointer;color:#64748b;padding:4px">✕</button>
+    </div>
+    <div id="historialList" style="max-height:60vh;overflow-y:auto"></div>
+  </div>
+</div>
+
 <!-- API Key Modal -->
 <div id="apiModal" class="modal-overlay hidden">
   <div class="modal">
@@ -107,6 +118,11 @@
           🔄 Nueva Sesión
         </button>
       </div>
+      <div class="footer-row" style="margin-top:6px">
+        <button id="btnHistorial" class="btn-sm btn-ghost" style="width:100%">
+          📚 Historial
+        </button>
+      </div>
     </div>
 
   </aside>
@@ -136,9 +152,10 @@
               <li>Carga el <strong>perfil del cargo</strong> (panel izquierdo)</li>
               <li>Sube <strong>todos los CVs</strong> que quieras comparar</li>
               <li>Presiona <strong>📊 Generar Informe</strong> y recibirás:<br>
-                &nbsp;&nbsp;• Tabla de competencias por candidato<br>
-                &nbsp;&nbsp;• Ranking de mayor a menor preferencia<br>
-                &nbsp;&nbsp;• Análisis de los Top 7: idoneidad, fortalezas/debilidades y 10 preguntas sugeridas de entrevista
+                &nbsp;&nbsp;• Resumen ejecutivo para el gerente<br>
+                &nbsp;&nbsp;• Tabla de competencias con semáforo de riesgo 🟢🟡🔴<br>
+                &nbsp;&nbsp;• Red flags detectadas automáticamente<br>
+                &nbsp;&nbsp;• Análisis Top 5: gráfico de radar, timeline de carrera, idoneidad, fortalezas/debilidades y 10 preguntas de entrevista
               </li>
             </ol>
           </div>

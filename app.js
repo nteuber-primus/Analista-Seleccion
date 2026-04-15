@@ -316,6 +316,12 @@ async function sendMessage(userBlocks, userLabel, isReport = false) {
     if (isReport) {
       state.lastReport = fullText;
       els.btnExport.disabled = false;
+      // Guardar automáticamente en historial
+      const cargo = (() => {
+        const m = fullText.match(/Informe de Selecci[oó]n\s*[—–-]\s*(.+)/i);
+        return m ? m[1].trim() : 'Proceso de Selección';
+      })();
+      saveToHistorial(cargo, state.cvs.length, fullText);
     }
 
   } catch (err) {
@@ -433,7 +439,7 @@ async function generateReport() {
     // Instrucción principal
     {
       type: 'text',
-      text: `Aquí están el perfil del cargo y los CVs de los ${n} candidatos. Analízalos a TODOS comparativamente y genera el informe completo con: (1) matriz de competencias (candidatos como filas, competencias como columnas), (2) ranking completo con puntuación X/10 para cada candidato, (3) análisis detallado de cada uno de los top 7 con tres secciones: idoneidad para el cargo, fortalezas y debilidades, y 10 preguntas sugeridas para la entrevista personalizadas según el perfil de cada candidato.`
+      text: `Aquí están el perfil del cargo y los CVs de los ${n} candidatos. Analízalos a TODOS comparativamente y genera el informe completo con: (1) resumen ejecutivo de 3 oraciones para el gerente, (2) matriz de competencias (candidatos como filas, competencias como columnas, máximo 7 columnas), (3) ranking completo con puntuación X/10 y semáforo de riesgo 🟢🟡🔴 por candidato, (4) sección de red flags detectadas, (5) análisis de los top 5 con trayectoria laboral, idoneidad (máx 3 oraciones), fortalezas/debilidades (máx 3 oraciones) y 10 preguntas de entrevista personalizadas.`
     },
     // Perfil del cargo
     ...state.jobProfile.blocks,
@@ -444,7 +450,7 @@ async function generateReport() {
     // Instrucción de formato final
     {
       type: 'text',
-      text: `Genera ahora el informe completo con: (1) matriz de competencias con candidatos como filas y competencias como columnas, (2) ranking completo de todos los candidatos de mayor a menor preferencia con puntuación X/10, (3) análisis de los top 7 candidatos con tres secciones cada uno: idoneidad para el cargo, fortalezas y debilidades, y exactamente 10 preguntas sugeridas para la entrevista personalizadas para ese candidato. Usa Markdown.`
+      text: `Genera ahora el informe completo en Markdown con: (1) resumen ejecutivo 3 oraciones, (2) matriz de competencias candidatos-como-filas máx 7 columnas, (3) ranking completo con X/10 y semáforo 🟢🟡🔴, (4) red flags detectadas, (5) análisis de los top 5 con línea de Trayectoria, idoneidad máx 3 oraciones, fortalezas/debilidades máx 3 oraciones, y 10 preguntas de entrevista personalizadas.`
     }
   ];
 
@@ -457,6 +463,178 @@ async function generateReport() {
   els.btnGenerateReport.disabled = false;
 }
 
+/* ═══════════════════════════════════════════════
+   Historial de procesos (localStorage)
+═══════════════════════════════════════════════ */
+const HISTORIAL_KEY = 'cv_reviewer_history';
+
+function saveToHistorial(cargo, cvCount, reportMarkdown) {
+  const history = JSON.parse(localStorage.getItem(HISTORIAL_KEY) || '[]');
+  history.unshift({ id: Date.now(), date: new Date().toLocaleDateString('es-CL', { dateStyle: 'medium' }), cargo, cvCount, reportMarkdown });
+  if (history.length > 30) history.pop();
+  localStorage.setItem(HISTORIAL_KEY, JSON.stringify(history));
+  updateHistorialBadge();
+}
+
+function getHistorial() {
+  return JSON.parse(localStorage.getItem(HISTORIAL_KEY) || '[]');
+}
+
+function updateHistorialBadge() {
+  const n = getHistorial().length;
+  const btn = document.getElementById('btnHistorial');
+  if (btn) btn.textContent = `📚 Historial${n > 0 ? ` (${n})` : ''}`;
+}
+
+function showHistorialModal() {
+  const history = getHistorial();
+  const modal = document.getElementById('historialModal');
+  const list  = document.getElementById('historialList');
+  if (!modal || !list) return;
+
+  if (history.length === 0) {
+    list.innerHTML = '<p style="color:#64748b;text-align:center;padding:24px">No hay informes guardados aún.</p>';
+  } else {
+    list.innerHTML = history.map(e => `
+      <div class="hist-item">
+        <div class="hist-info">
+          <div class="hist-cargo">${e.cargo}</div>
+          <div class="hist-meta">${e.date} · ${e.cvCount} candidatos</div>
+        </div>
+        <div class="hist-actions">
+          <button class="btn-hist-load" onclick="loadFromHistorial(${e.id})">Ver</button>
+          <button class="btn-hist-del" onclick="deleteFromHistorial(${e.id})">✕</button>
+        </div>
+      </div>`).join('');
+  }
+  modal.classList.remove('hidden');
+}
+
+function loadFromHistorial(id) {
+  const entry = getHistorial().find(e => e.id === id);
+  if (!entry) return;
+  document.getElementById('historialModal').classList.add('hidden');
+  state.lastReport = entry.reportMarkdown;
+  els.btnExport.disabled = false;
+  // Render in chat
+  const msgEl = addAgentMessage();
+  msgEl.innerHTML = renderMarkdown(entry.reportMarkdown);
+  setStatus('ready', `Informe cargado: ${entry.cargo}`);
+}
+
+function deleteFromHistorial(id) {
+  const history = getHistorial().filter(e => e.id !== id);
+  localStorage.setItem(HISTORIAL_KEY, JSON.stringify(history));
+  updateHistorialBadge();
+  showHistorialModal(); // refresh
+}
+
+/* ═══════════════════════════════════════════════
+   Radar chart SVG (por candidato)
+═══════════════════════════════════════════════ */
+function parseCompetencyMatrix(markdownText) {
+  const tableMatch = markdownText.match(/\|.+\|\n\|[-| :]+\|\n([\s\S]+?)(?=\n\n|\n##|$)/);
+  if (!tableMatch) return null;
+
+  const allLines = markdownText.match(/^\|.+\|$/gm);
+  if (!allLines || allLines.length < 3) return null;
+
+  const headerLine = allLines[0];
+  const headers = headerLine.split('|').slice(1, -1).map(h => h.trim()).slice(1);
+
+  const dataLines = allLines.filter(l => !l.match(/^\|[-: |]+\|$/)).slice(1);
+
+  const candidates = dataLines.map(row => {
+    const cells = row.split('|').slice(1, -1).map(c => c.trim());
+    return {
+      name: cells[0],
+      scores: cells.slice(1).map(c => c.includes('✅') ? 1 : c.includes('⚠') ? 0.5 : 0)
+    };
+  }).filter(c => c.name && c.scores.length > 0);
+
+  return { headers, candidates };
+}
+
+function generateRadarSVG(labels, values, candidateName) {
+  const size = 220, cx = 110, cy = 105, maxR = 78;
+  const n = labels.length;
+  if (n < 3) return '';
+
+  const pt = (val, idx) => {
+    const angle = (idx / n) * 2 * Math.PI - Math.PI / 2;
+    return { x: cx + maxR * val * Math.cos(angle), y: cy + maxR * val * Math.sin(angle) };
+  };
+
+  const gridLevels = [1, 0.67, 0.33];
+  const grids = gridLevels.map(lv =>
+    `<polygon points="${Array.from({length:n},(_,i)=>{const p=pt(lv,i);return `${p.x},${p.y}`;}).join(' ')}" fill="none" stroke="#dde6f0" stroke-width="1"/>`
+  ).join('');
+
+  const axes = Array.from({length:n},(_,i) => {
+    const p = pt(1, i);
+    return `<line x1="${cx}" y1="${cy}" x2="${p.x}" y2="${p.y}" stroke="#e2e8f0" stroke-width="1"/>`;
+  }).join('');
+
+  const dataPoints = Array.from({length:n},(_,i) => pt(values[i]||0, i));
+  const polygon = `<polygon points="${dataPoints.map(p=>`${p.x},${p.y}`).join(' ')}" fill="rgba(26,58,110,0.18)" stroke="#1a3a6e" stroke-width="2" stroke-linejoin="round"/>`;
+  const dots = dataPoints.map(p => `<circle cx="${p.x}" cy="${p.y}" r="3" fill="#1a3a6e"/>`).join('');
+
+  const lbls = labels.map((lbl, i) => {
+    const angle = (i / n) * 2 * Math.PI - Math.PI / 2;
+    const lr = maxR + 18;
+    const x = cx + lr * Math.cos(angle);
+    const y = cy + lr * Math.sin(angle);
+    const anchor = Math.cos(angle) > 0.1 ? 'start' : Math.cos(angle) < -0.1 ? 'end' : 'middle';
+    const short = lbl.length > 13 ? lbl.slice(0, 12) + '…' : lbl;
+    return `<text x="${x}" y="${y+3.5}" font-size="7.5" text-anchor="${anchor}" fill="#475569" font-family="sans-serif">${short}</text>`;
+  }).join('');
+
+  const score = values.length ? Math.round((values.reduce((a,b)=>a+b,0)/values.length)*10) : 0;
+
+  return `<div style="text-align:center">
+    <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
+      ${grids}${axes}${polygon}${dots}${lbls}
+    </svg>
+    <div style="font-size:8pt;color:#64748b;margin-top:2px">Cobertura: ${score}/10</div>
+  </div>`;
+}
+
+/* ═══════════════════════════════════════════════
+   Career timeline SVG
+═══════════════════════════════════════════════ */
+function parseTrayectoria(candidateBlock) {
+  const m = candidateBlock.match(/\*\*Trayectoria:\*\*\s*(.+)/);
+  if (!m) return null;
+  return m[1].split('→').map(s => s.trim()).map(part => {
+    const yearM = part.match(/\(([^)]+)\)/);
+    return { name: part.replace(/\([^)]*\)/,'').trim(), years: yearM ? yearM[1] : '' };
+  }).filter(j => j.name);
+}
+
+function generateTimelineSVG(jobs) {
+  if (!jobs || jobs.length < 2) return '';
+  const W = 460, H = 64, pad = 10;
+  const segW = (W - 2*pad) / jobs.length;
+  const colors = ['#93b8e8','#6a9fd4','#4a84bf','#2a68a9','#0f2044'];
+
+  const segs = jobs.map((job, i) => {
+    const x = pad + i * segW;
+    const w = segW - 2;
+    const color = colors[Math.min(i, colors.length-1)];
+    const isLast = i === jobs.length - 1;
+    const name = job.name.length > 14 ? job.name.slice(0,13)+'…' : job.name;
+    return `
+      <rect x="${x}" y="8" width="${w}" height="18" rx="4" fill="${color}"/>
+      ${!isLast ? `<polygon points="${x+w},8 ${x+w+6},17 ${x+w},26" fill="${color}"/>` : ''}
+      <text x="${x+w/2}" y="43" font-size="7" text-anchor="middle" fill="#334155" font-family="sans-serif">${name}</text>
+      <text x="${x+w/2}" y="54" font-size="6.5" text-anchor="middle" fill="#64748b" font-family="sans-serif">${job.years}</text>`;
+  }).join('');
+
+  return `<div style="overflow-x:auto;margin:6px 0 10px">
+    <svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" style="display:block;margin:0 auto">${segs}</svg>
+  </div>`;
+}
+
 // Exportar informe
 function exportReport() {
   if (!state.lastReport) return;
@@ -467,7 +645,13 @@ function exportReport() {
     return m ? m[1].trim() : 'Proceso de Selección';
   })();
 
-  // Post-procesa el markdown renderizado para aplicar estilos semánticos a la matriz
+  // Parsear matriz para radares
+  const matrix = parseCompetencyMatrix(state.lastReport);
+
+  // Parsear bloques de candidatos para timelines
+  const candidateBlocks = state.lastReport.split(/(?=\n\*\*[^*\n]+\*\*\n\n\*\*Trayectoria)/);
+
+  // Post-procesa el markdown renderizado
   let bodyHtml = renderMarkdown(state.lastReport);
 
   // Colorea celdas de la matriz según símbolo
@@ -475,6 +659,36 @@ function exportReport() {
     .replace(/<td>✅<\/td>/g, '<td class="cell-ok">✅</td>')
     .replace(/<td>⚠️<\/td>/g,  '<td class="cell-warn">⚠️</td>')
     .replace(/<td>❌<\/td>/g,  '<td class="cell-no">❌</td>');
+
+  // Inyectar radar charts y timelines por candidato
+  if (matrix && matrix.headers.length >= 3) {
+    matrix.candidates.slice(0, 5).forEach(cand => {
+      const radarSVG = generateRadarSVG(matrix.headers, cand.scores, cand.name);
+      // Buscar el bloque del candidato en bodyHtml y agregar radar después del header
+      const nameEscaped = cand.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      bodyHtml = bodyHtml.replace(
+        new RegExp(`(<strong>${nameEscaped}<\\/strong>)`,'i'),
+        `$1${radarSVG ? `<div class="radar-wrap">${radarSVG}</div>` : ''}`
+      );
+    });
+  }
+
+  // Inyectar timelines
+  candidateBlocks.forEach(block => {
+    const jobs = parseTrayectoria(block);
+    if (!jobs) return;
+    const timelineSVG = generateTimelineSVG(jobs);
+    if (!timelineSVG) return;
+    // Reemplazar el texto de Trayectoria con el SVG visual
+    const trayMatch = block.match(/\*\*Trayectoria:\*\*\s*(.+)/);
+    if (trayMatch) {
+      const trayText = trayMatch[1].trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      bodyHtml = bodyHtml.replace(
+        new RegExp(`<strong>Trayectoria:<\\/strong>\\s*${trayText}`),
+        `<strong>Trayectoria:</strong>${timelineSVG}`
+      );
+    }
+  });
 
   const htmlContent = `<!DOCTYPE html>
 <html lang="es">
@@ -642,6 +856,17 @@ function exportReport() {
     color: #64748b;
     white-space: nowrap;
   }
+
+  /* ── Radar chart ── */
+  .radar-wrap {
+    float: right;
+    margin: 0 0 8px 20px;
+    background: #f7f9fc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 8px;
+  }
+  @media print { .radar-wrap { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
 
   /* ── Tarjetas de candidatos ── */
   .candidate-card {
@@ -937,6 +1162,16 @@ async function init() {
   els.btnGenerateReport.addEventListener('click', generateReport);
   els.btnExport.addEventListener('click', exportReport);
   els.btnNewSession.addEventListener('click', newSession);
+
+  // Historial
+  document.getElementById('btnHistorial')?.addEventListener('click', showHistorialModal);
+  document.getElementById('closeHistorial')?.addEventListener('click', () => {
+    document.getElementById('historialModal')?.classList.add('hidden');
+  });
+  document.getElementById('historialModal')?.addEventListener('click', e => {
+    if (e.target.id === 'historialModal') document.getElementById('historialModal').classList.add('hidden');
+  });
+  updateHistorialBadge();
 
   // Modal API Key
   const saveBtn = document.getElementById('saveApiKey');
