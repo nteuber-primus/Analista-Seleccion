@@ -101,6 +101,17 @@ Reglas:
 - Si hay menos de 7 candidatos, analiza en detalle a todos los disponibles
 - Los párrafos de análisis deben ser específicos: nombra tecnologías, años, cargos anteriores y logros concretos`;
 
+app.get('/api/debug', (req, res) => {
+  const key = process.env.ANTHROPIC_API_KEY || '';
+  res.json({
+    hasKey: !!key,
+    length: key.length,
+    prefix: key.slice(0, 10),
+    vercel: process.env.VERCEL,
+    nodeEnv: process.env.NODE_ENV,
+  });
+});
+
 app.post('/api/parse-docx', async (req, res) => {
   const { data } = req.body;
   if (!data) return res.status(400).json({ error: 'Campo "data" requerido.' });
